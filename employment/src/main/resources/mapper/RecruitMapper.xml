@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.db.employment.dao.RecruitMapper">
+
+    <select id="getAllRecruit" resultType="com.db.employment.pojo.Recruit">
+        select * from recruit
+        where audit_pass = 1
+        and r_cid = (
+            select c_id from company
+            where user_id = #{param3}
+            )
+        limit #{param1}, #{param2}
+    </select>
+    <select id="getAllType" resultType="string">
+        select distinct r_jobtype from recruit
+        where audit_pass = 1
+    </select>
+    <select id="getJob" resultType="string">
+        select distinct r_job from recruit
+        where r_jobtype=#{jobtype} and audit_pass = 1
+    </select>
+    <select id="getAllJobcount" resultType="int">
+        select count(*) from recruit
+        where audit_pass = 1
+    </select>
+    <select id="getRecruits" resultType="com.db.employment.pojo.Recruit">
+        select * from recruit
+        where r_job=#{job} and audit_pass = 1
+    </select>
+    <select id="getRecruitsByJobname" resultType="com.db.employment.pojo.Recruit">
+        SELECT * from recruit
+        <where> audit_pass = 1
+            <if test="job != null">
+                and (r_job LIKE concat('%',#{param1},'%')
+                or r_cid = (select c_id from company where c_name like concat('%',#{param1},'%')))
+            </if>
+        </where>
+        limit #{param2}, #{param3}
+    </select>
+
+    <insert id="insertRecruit" parameterType="com.db.employment.pojo.Recruit" useGeneratedKeys="true" keyProperty="rid">
+        insert into recruit(job_detail,job_request,r_job,r_salary,r_type,r_jobtype,
+            r_empnum,r_deadline,r_cid,r_place)
+            values (#{jobDetail},#{jobRequest},#{rjob},#{rsalary},#{rtype},#{rjobtype},#{rempnum},#{rdeadline},#{rcid},#{rplace})
+    </insert>
+
+    <select id="getAllRecruitByCid" resultType="com.db.employment.pojo.Recruit">
+        select * from recruit
+            where r_cid = #{param3} and audit_pass = 1
+        limit #{param1}, #{param2}
+    </select>
+
+    <select id="getAllRecruitView" resultType="com.db.employment.pojo.RecruitView">
+        select * from simple_employment_info
+            where auditpass = 0
+        limit #{param1},#{param2}
+    </select>
+    <update id="updateRecruitById" parameterType="int">
+        update recruit set audit_pass = #{audit_pass}
+        where r_id = #{param2}
+    </update>
+
+    <update id="updateRecruit" parameterType="com.db.employment.pojo.Recruit">
+        update recruit
+        set job_detail = #{jobDetail},job_request = #{jobRequest},
+            r_salary=#{rsalary},r_type=#{rtype},r_empnum=#{rempnum},
+            r_deadline = #{rdeadline},audit_pass=0
+        where r_id = #{rid}
+    </update>
+    <delete id="deleteRecruit" parameterType="int">
+        delete from recruit
+        where r_id = #{rid}
+    </delete>
+</mapper>
